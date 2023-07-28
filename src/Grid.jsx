@@ -1,12 +1,14 @@
-import React, { useCallback, useEffect } from "react";
+/* eslint-disable no-undef */
+import React, { useEffect } from "react";
 import { DataEditor, GridCellKind } from "@glideapps/glide-data-grid";
 import { DropdownCell as DropdownRenderer, useExtraCells } from "@glideapps/glide-data-grid-cells";
 import "@glideapps/glide-data-grid/dist/index.css";
 import { data, validationIssue, columns } from "./data";
 import { useUndoRedo } from "./useUndoRedo";
-import "@toast-ui/editor/dist/toastui-editor.css";
 import useDropdownRender from "./DropDownRenderer";
+import useDatePickerRenderer from "./DatePickerRenderer";
 import { useLayer } from "react-laag";
+import moment from "moment";
 
 const createMeta = () => {
     let main = [];
@@ -17,8 +19,6 @@ const createMeta = () => {
 
     for (let i = 0; i < data.length; i ++) {
         const validations = validationIssue.filter((e) => e.lineId === parseInt(data[i][lineIdIndex]));
-
-        // console.log("validations", validations, data[i][lineIdIndex], lineIdIndex);
 
         main.push(columns.map((col, colIndex) => {
             return {
@@ -37,9 +37,20 @@ const meta =  createMeta();
 const Grid = () => {
     const cellProps = useExtraCells();
     const dropdownRender = useDropdownRender();
+    const datePickerRenderer = useDatePickerRenderer();
+
+    const defaultZeroBounds = {
+        left: 0,
+        top: 0,
+        width: 0,
+        height: 0,
+        bottom: 0,
+        right: 0,
+    };
 
     const dataRef = React.useRef(data);
     const metaRef = React.useRef(meta);
+    const zeroBoundsRef = React.useRef(defaultZeroBounds);
     const saveRef = React.useRef([...new Array(dataRef.current.length).fill(null).map((e) => new Array(dataRef.current[0].length).fill(null))]);
     const timeoutRef = React.useRef(0);
 
@@ -59,6 +70,7 @@ const Grid = () => {
         const defaultData = {
             meta: metaRef.current[row][col],
             allowOverlay: true,
+            defaultData: d,
             copyData: d,
             displayData: d,
             themeOverride: {
@@ -127,26 +139,35 @@ const Grid = () => {
         }
 
         if (column.dataType === "Date") {
-            let currentDate, currentDateToShow;
+            let date, displayDate, copyData, currentValue, value;
             if(!isNaN(new Date(d).getTime())) {
-                currentDate = new Date(d);
-                currentDateToShow = currentDate.toLocaleDateString();
+                currentValue = new Date(d);
+                date = moment(currentValue).format("YYYY-MM-DD");
+                displayDate = moment(currentValue).format("DD/MM/YYYY");
+                value = moment(currentValue).format("YYYY-MM-DD")
+                copyData = moment(currentValue).format("YYYY-MM-DD")
             } else {
-                currentDate = new Date();
-                currentDateToShow = d.toString();
-                type = 2
+                if (d !== "") {
+                    type = 2
+                }
+                date = new Date();
+                displayDate = d;
+                value = d;
+                copyData = d;
             }
 
             return {
                 kind: GridCellKind.Custom,
                 ...defaultData,
-                copyData: currentDateToShow,
+                copyData,
                 type,
                 data: {
                     kind: "date-picker-cell",
-                    date: currentDate,
-                    displayDate: currentDateToShow,
+                    date,
+                    value,
+                    displayDate,
                     format: "date",
+                    d,
                 },
             }
         }
@@ -155,7 +176,7 @@ const Grid = () => {
             kind: GridCellKind.Text,
             ...defaultData,
             data: d,
-            type,
+            type: 1,
         };
     }, []);
 
@@ -165,7 +186,7 @@ const Grid = () => {
 
     const _onCellEdited = React.useCallback((cell, newValue) => {
         const [col, row] = cell;
-        
+
         if (newValue.kind === "delete"){
             dataRef.current[row][col] = "";
         } else
@@ -174,7 +195,15 @@ const Grid = () => {
                 dataRef.current[row][col] = newValue?.data?.rating.toString();
             } else
             if (newValue?.data?.kind === "date-picker-cell" || newValue?.data?.data?.kind === "date-picker-cell") {
-                dataRef.current[row][col] = newValue?.data?.date;
+                if (newValue?.data?.renderer) {
+                    if(!isNaN(new Date(newValue?.data?.date).getTime())) {
+                        dataRef.current[row][col] = moment(newValue?.data?.date).format("MM-DD-YYYY");
+                    } else {
+                        dataRef.current[row][col] = newValue?.data?.value;
+                    }
+                } else {
+                    dataRef.current[row][col] = newValue?.data?.value ?? newValue.data;
+                }
             } else
             if (newValue?.data?.kind === "dropdown-cell") {
                 dataRef.current[row][col] = newValue?.data?.value?.toString();
@@ -194,29 +223,16 @@ const Grid = () => {
     }, []);
 
     const gridRef = React.useRef(null);
-    const { gridSelection, onCellEdited, onGridSelectionChange, undo, canRedo, canUndo, redo } = useUndoRedo(gridRef, getCellContent, _onCellEdited);
+    const { gridSelection, onCellEdited, onGridSelectionChange } = useUndoRedo(gridRef, getCellContent, _onCellEdited);
     
-    const [hoverRow, setHoverRow] = React.useState(undefined);
     const [tooltip, setTooltip] = React.useState();
     const [lockTooltip, setLockTooltip] = React.useState(false);
 
-    const zeroBounds = {
-        left: 0,
-        top: 0,
-        width: 0,
-        height: 0,
-        bottom: 0,
-        right: 0,
-    };
-
     const onItemHovered = React.useCallback((args) => {
-        const [_, row] = args.location;
-        setHoverRow(args.kind !== "cell" ? undefined : row);
-
-        // console.log("lockTooltip", lockTooltip);
         if (lockTooltip) {
             return
         }
+
         if (args.kind === "cell") {
             const row = args.location[1]
             const col = args.location[0]
@@ -225,58 +241,48 @@ const Grid = () => {
             window.clearTimeout(timeoutRef.current);
             setTooltip(undefined);
             if (currentCell?.validations?.length > 0) {
-                // console.log("args", args);
-                timeoutRef.current = window.setTimeout(() => {
+                timeoutRef.current = setTimeout(() => {
+
+                    const bounds = {
+                        left: args.bounds.x,
+                        top: args.bounds.y,
+                        width: args.bounds.width,
+                        height: args.bounds.height,
+                        right: args.bounds.x + args.bounds.width,
+                        bottom: args.bounds.y + args.bounds.height,
+                    };
+
+                    zeroBoundsRef.current = bounds;
+
                     setTooltip({
                         val: `Tooltip for ${args.location[0]}, ${args.location[1]}`,
-                        bounds: {
-                            // translate to react-laag types
-                            left: args.bounds.x,
-                            top: args.bounds.y,
-                            width: args.bounds.width,
-                            height: args.bounds.height,
-                            right: args.bounds.x + args.bounds.width,
-                            bottom: args.bounds.y + args.bounds.height,
-                        },
+                        bounds,
                         currentCell,
                     });
-                }, 1000);
+                }, 100);
             }
         } else {
             window.clearTimeout(timeoutRef.current);
-            timeoutRef.current = 0;
+            timeoutRef.current = null;
             setTooltip(undefined);
         }
     }, [lockTooltip]);
 
-    const getRowThemeOverride = React.useCallback(
-        row => {
-            if (row !== hoverRow) return undefined;
-            return {
-                bgCell: "#f7f7f7",
-                bgCellMedium: "#f0f0f0",
-            };
-        },
-        [hoverRow]
-    );
-
-    const isOpen = tooltip !== undefined;
-    const { renderLayer, layerProps, arrowProps } = useLayer({
+    const isOpen = lockTooltip || tooltip !== undefined;
+    const { renderLayer, layerProps } = useLayer({
         isOpen,
         auto: true,
-        placement: "right-start", // we prefer to place the menu "top-end"
-        triggerOffset: -3,
+        placement: "right-start",
+        triggerOffset: -13,
         container: "portal",
-        containerOffset: 16, // give the menu some room to breath relative to the container
+        containerOffset: 16,
         trigger: {
-            getBounds: () => tooltip?.bounds ?? zeroBounds,
+            getBounds: () => tooltip?.bounds ?? zeroBoundsRef.current,
         },
     });
 
     const handleCloseTootip = () => {
         setLockTooltip(false);
-        window.clearTimeout(timeoutRef.current);
-        timeoutRef.current = 0;
         setTooltip(undefined);
     }
 
@@ -292,8 +298,6 @@ const Grid = () => {
                 result.push(row);
             }
 
-            // console.log("result", result);
-
             return result;
         },
         [getCellContent]
@@ -301,12 +305,6 @@ const Grid = () => {
 
     return (
         <div className="grid">
-            <button onClick={undo} disabled={!canUndo} style={{ opacity: canUndo ? 1 : 0.4 }}>
-                Undo
-            </button>
-            <button onClick={redo} disabled={!canRedo} style={{ opacity: canRedo ? 1 : 0.4 }}>
-                Redo
-            </button>
             <DataEditor
                 {...cellProps}
                 theme={{
@@ -348,14 +346,13 @@ const Grid = () => {
                 onGridSelectionChange={onGridSelectionChange}
                 rowMarkers="both"
                 onItemHovered={onItemHovered}
-                getRowThemeOverride={getRowThemeOverride}
                 onPaste={true}
                 getCellsForSelection={getCellsForSelection}
-                // onCellActivated={(e) => console.log("test", e)}
                 rowHeight={25}
                 freezeColumns={2}
                 smoothScrollX={true}
                 smoothScrollY={true}
+                fillHandle={true}
                 keybindings={{
                     clear: true,
                     copy: true,
@@ -391,6 +388,7 @@ const Grid = () => {
 
                     // ctx.fillRect(x - (2), y - (2), width + (2 * 2), height + (2 * 2));
 
+                    console.log("cell", cell);
                     if (cell.type !== 0) {
                         // console.log("args", args);
                         if (cell.type === 1) {
@@ -407,7 +405,7 @@ const Grid = () => {
                             hlColor = "#ff4e007d"
                         }
 
-                        const { x, y, width, height } = rect;
+                        // const { x, y, width, height } = rect;
                     };
 
                     if (highlighted) {
@@ -435,10 +433,10 @@ const Grid = () => {
                 }}
                 customRenderers={[
                     dropdownRender,
+                    datePickerRenderer,
                     ...cellProps.customRenderers,
                 ]}
             />
-            {/* {console.log("layerProps", layerProps)} */}
             {isOpen &&
                 renderLayer(
                     <div
@@ -455,8 +453,9 @@ const Grid = () => {
                             maxHeight: 200,
                             overflow: "auto",
                             pointerEvents: "all",
+                            border: "2px solid grey",
                         }}>
-                        {tooltip.currentCell.validations.map((validation, validationKey) => {
+                        {tooltip?.currentCell?.validations.map((validation, validationKey) => {
                             return (
                                 <div key={`validation/${validationKey}`}>
                                     <h3>{validation.beCrisId}</h3>

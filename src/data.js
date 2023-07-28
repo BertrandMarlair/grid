@@ -1,3 +1,5 @@
+import moment from "moment";
+
 export const mergedCells = [
     {
         row: 0,
@@ -56,19 +58,19 @@ export const columns = [
     },
 ];
 
-const createValidation = (count) => {
-    return new Array(count).fill(null).map((e) => (
-        {
-            anaCreditId: "",
-            beCrisId: "DECL_CM_006",
-            columnName: "ProjectFinanceLoan",
-            dataSet: "Instrument",
-            lineId: Math.round(Math.random() * 1000),
-            lotId: Math.round(Math.random() * 1000),
-            messageDesc: "Mandatory field missing for instrument ProjectFinanceLoan. See Declaration requirements when in",
-        }
-    ))
-}
+// const createValidation = (count) => {
+//     return new Array(count).fill(null).map((e) => (
+//         {
+//             anaCreditId: "",
+//             beCrisId: "DECL_CM_006",
+//             columnName: "ProjectFinanceLoan",
+//             dataSet: "Instrument",
+//             lineId: Math.round(Math.random() * 1000),
+//             lotId: Math.round(Math.random() * 1000),
+//             messageDesc: "Mandatory field missing for instrument ProjectFinanceLoan. See Declaration requirements when in",
+//         }
+//     ))
+// }
 
 export const validationIssue = [
     {
@@ -76,7 +78,7 @@ export const validationIssue = [
         beCrisId: "DECL_CM_006",
         columnName: "ProjectFinanceLoan",
         dataSet: "Instrument",
-        lineId: 1,
+        lineId: 4,
         lotId: 2113,
         messageDesc: "Mandatory field missing for instrument ProjectFinanceLoan. See Declaration requirements when in",
     },
@@ -85,7 +87,7 @@ export const validationIssue = [
         beCrisId: "DECL_CM_006",
         columnName: "ProjectFinanceLoan",
         dataSet: "Instrument",
-        lineId: 1,
+        lineId: 5,
         lotId: 2113,
         messageDesc: "Mandatory field missing for instrument ProjectFinanceLoan. See Declaration requirements when in",
     },
@@ -94,7 +96,7 @@ export const validationIssue = [
         beCrisId: "DECL_CM_006",
         columnName: "ProjectFinanceLoan",
         dataSet: "Instrument",
-        lineId: 1,
+        lineId: 6,
         lotId: 2113,
         messageDesc: "Mandatory field missing for instrument ProjectFinanceLoan. See Declaration requirements when in",
     },
@@ -103,11 +105,11 @@ export const validationIssue = [
         beCrisId: "DECL_CM_006",
         columnName: "ProjectFinanceLoan",
         dataSet: "Instrument",
-        lineId: 1,
+        lineId: 7,
         lotId: 2113,
         messageDesc: "Mandatory field missing for instrument ProjectFinanceLoan. See Declaration requirements when in",
     },
-    ...createValidation(100),
+    // ...createValidation(100),
 ]
 
 
@@ -119,7 +121,7 @@ const createData = (count) => {
         "Deidre Morris",
         "deidremorcom",
         "+1 (867) 332",
-        new Date(new Date().getTime() + Math.round(Math.random() * 100000000)).toLocaleDateString(),
+        moment(new Date(new Date().getTime() + Math.round(Math.random() * 100000000))).format("YYYY-MM-DD")
     ]))
 }
 
@@ -140,7 +142,7 @@ export const data = [
         "EVENTAGE",
         "sherylcraig@eventage.com",
         "+1 (869) 520-2227",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "3",
@@ -149,7 +151,7 @@ export const data = [
         "ANOCHA",
         "lidiabowers@anocha.com",
         "+1 (808) 414-3826",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "4",
@@ -158,7 +160,7 @@ export const data = [
         "REPETWIRE",
         "jonesnorton@repetwire.com",
         "+1 (875) 582-3320",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "5",
@@ -167,7 +169,7 @@ export const data = [
         "COMDOM",
         "lulabruce@comdom.com",
         "+1 (873) 452-2472",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "6",
@@ -176,7 +178,7 @@ export const data = [
         "SQUISH",
         "larsenmontgomery@squish.com",
         "+1 (893) 482-3651",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "7",
@@ -185,7 +187,7 @@ export const data = [
         "COMCUR",
         "beckybright@comcur.com",
         "+1 (879) 494-2331",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "8",
@@ -194,7 +196,7 @@ export const data = [
         "FROLIX",
         "charlotterowland@frolix.com",
         "+1 (861) 439-2134",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "9",
@@ -203,7 +205,7 @@ export const data = [
         "GEEKETRON",
         "sonyahensley@geeketron.com",
         "+1 (802) 553-2194",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "10",
@@ -212,7 +214,7 @@ export const data = [
         "EXOSWITCH",
         "stephensonguthrie@exoswitch.com",
         "+1 (903) 449-3271",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "11",
@@ -221,7 +223,7 @@ export const data = [
         "TURNLING",
         "mcmillancline@turnling.com",
         "+1 (982) 496-2454",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "12",
@@ -230,7 +232,7 @@ export const data = [
         "TETRATREX",
         "kempdavis@tetratrex.com",
         "+1 (859) 594-2982",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "13",
@@ -239,7 +241,7 @@ export const data = [
         "SLOFAST",
         "matildalevy@slofast.com",
         "+1 (841) 521-2444",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "14",
@@ -248,7 +250,7 @@ export const data = [
         "COMTRAK",
         "hattiesimpson@comtrak.com",
         "+1 (962) 587-3805",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "15",
@@ -257,7 +259,7 @@ export const data = [
         "IDETICA",
         "kinneymunoz@idetica.com",
         "+1 (921) 513-2012",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "16",
@@ -266,7 +268,7 @@ export const data = [
         "TURNABOUT",
         "lambertraymond@turnabout.com",
         "+1 (919) 519-2442",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
     [
         "17",
@@ -275,7 +277,7 @@ export const data = [
         "BYTREX",
         "bryantdunlap@bytrex.com",
         "+1 (872) 583-2883",
-        "11/11/2022",
+        moment("11/11/2022").format("YYYY-MM-DD"),
     ],
-    ...createData(1000),
+    ...createData(10000),
 ]

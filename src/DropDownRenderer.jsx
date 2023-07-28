@@ -1,5 +1,4 @@
 import { GridCellKind, getMiddleCenterBias, useTheme } from "@glideapps/glide-data-grid";
-import { styled } from "@linaria/react";
 import React, { useEffect, useState } from "react";
 import Select, { components } from "react-select";
 
@@ -8,28 +7,6 @@ const CustomMenu = p => {
     const { children, ...rest } = p;
     return <Menu {...rest}>{children}</Menu>;
 };
-
-const Wrap = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-
-    .glide-select {
-        font-family: var(--gdg-font-family);
-        font-size: var(--gdg-editor-font-size);
-    }
-`;
-
-const PortalWrap = styled.div`
-    font-family: var(--gdg-font-family);
-    font-size: var(--gdg-editor-font-size);
-    color: var(--gdg-text-dark);
-
-    > div {
-        border-radius: 4px;
-        border: 1px solid var(--gdg-border-color);
-    }
-`;
 
 const Editor = ({ value: cell, onFinishedEditing, initialValue }) => {
     const { asyncAllowedValues, allowedValues, value: valueIn } = cell.data;
@@ -44,8 +21,6 @@ const Editor = ({ value: cell, onFinishedEditing, initialValue }) => {
             const response = await asyncAllowedValues();
 
             setLoading(false);
-            console.log("response", response);
-
             setAsyncValues(response);
 
         }
@@ -68,7 +43,7 @@ const Editor = ({ value: cell, onFinishedEditing, initialValue }) => {
     );
 
     return (
-        <Wrap>
+        <div>
             <Select
                 className="glide-select"
                 inputValue={inputValue}
@@ -115,9 +90,9 @@ const Editor = ({ value: cell, onFinishedEditing, initialValue }) => {
                     DropdownIndicator: () => null,
                     IndicatorSeparator: () => null,
                     Menu: props => (
-                        <PortalWrap>
+                        <div>
                             <CustomMenu className={"click-outside-ignore"} {...props} />
-                        </PortalWrap>
+                        </div>
                     ),
                 }}
                 options={values}
@@ -134,7 +109,7 @@ const Editor = ({ value: cell, onFinishedEditing, initialValue }) => {
                     });
                 }}
             />
-        </Wrap>
+        </div>
     );
 };
 

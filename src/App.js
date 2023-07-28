@@ -1,5 +1,4 @@
 import './App.css';
-import './styles/globals';
 import Grid from './Grid';
 import React from "react";
 
